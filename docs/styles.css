@@ -45,6 +45,18 @@ button:hover,
   background: var(--green);
 }
 
+.guest-button {
+  width: 100%;
+  margin-top: 2px;
+  background: transparent;
+  color: var(--navy);
+  border-color: var(--line-strong);
+}
+
+.guest-button:hover {
+  background: rgba(228, 176, 40, 0.22);
+}
+
 button:disabled {
   cursor: wait;
   opacity: 0.72;
@@ -144,6 +156,7 @@ h2 {
   padding: clamp(54px, 12vh, 100px) 24px 24px;
   background: rgba(11, 24, 73, 0.48);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .unlock-overlay[hidden] {

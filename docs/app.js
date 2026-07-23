@@ -29,6 +29,7 @@ const els = {
   passwordInput: document.getElementById('passwordInput'),
   unlockButton: document.getElementById('unlockButton'),
   unlockStatus: document.getElementById('unlockStatus'),
+  guestButton: document.getElementById('guestButton'),
   appPanel: document.getElementById('appPanel'),
   lockButton: document.getElementById('lockButton'),
   searchInput: document.getElementById('searchInput'),
@@ -122,6 +123,7 @@ els.unlockForm.addEventListener('submit', event => {
   unlockWithPassword();
 });
 
+els.guestButton.addEventListener('click', continueWithoutPassword);
 els.lockButton.addEventListener('click', lockApp);
 els.dailyButton.addEventListener('click', () => setDataset('daily'));
 els.cumulativeButton.addEventListener('click', () => setDataset('cumulative'));
@@ -226,6 +228,20 @@ function openApp() {
   els.lockButton.hidden = false;
 }
 
+function continueWithoutPassword() {
+  state.messages = [];
+  state.meta = null;
+  els.passwordInput.value = '';
+  els.unlockStatus.textContent = '';
+  els.searchInput.value = '';
+  els.searchInput.disabled = true;
+  els.statsGrid.hidden = true;
+  clearSelection();
+  openApp();
+  showPlaceholder('TXT sec');
+  els.metaLine.textContent = 'Sifresiz mod';
+}
+
 function lockApp() {
   state.messages = [];
   state.meta = null;
@@ -238,7 +254,7 @@ function lockApp() {
   }
   els.searchInput.disabled = true;
   els.statsGrid.hidden = true;
-  els.appPanel.hidden = true;
+  els.appPanel.hidden = false;
   els.lockButton.hidden = true;
   els.unlockPanel.hidden = false;
   els.metaLine.textContent = 'Sifreli veri bekleniyor';
@@ -566,6 +582,7 @@ function setMetaLine() {
 
 function setBusy(busy, label) {
   els.unlockButton.disabled = busy;
+  els.guestButton.disabled = busy;
   if (typeof label === 'string') {
     els.unlockStatus.textContent = label;
   }
