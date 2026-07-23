@@ -59,15 +59,19 @@ button:disabled {
   z-index: 0;
 }
 
-.turtle-bg use {
+.turtle-stamp {
   animation: turtleFloat 8s ease-in-out infinite alternate;
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.turtle-bg use:nth-of-type(2n) {
+.turtle-stamp:nth-of-type(2n) {
   animation-duration: 10s;
   animation-direction: alternate-reverse;
+}
+
+.turtle-stamp:nth-of-type(3n) {
+  animation-duration: 12s;
 }
 
 @keyframes turtleFloat {

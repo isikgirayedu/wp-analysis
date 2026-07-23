@@ -5,33 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chat Analiz</title>
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="./styles.css?v=20260723b" />
+  <link rel="stylesheet" href="./styles.css?v=20260723c" />
   <script src="./vendor/chart.umd.min.js"></script>
-  <script src="./app.js?v=20260723b" defer></script>
+  <script src="./app.js?v=20260723c" defer></script>
 </head>
 <body>
-  <svg class="turtle-bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="turtle-bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0">
     <defs>
-      <symbol id="turtle-symbol" viewBox="0 0 100 100">
-        <ellipse cx="50" cy="57" rx="29" ry="23" fill="#0B1849" opacity="0.22"/>
-        <ellipse cx="50" cy="55" rx="24" ry="19" fill="#124D1C"/>
-        <path d="M31 54c9-14 29-16 39 0-8 16-29 16-39 0Z" fill="#E4B028" opacity="0.38"/>
-        <path d="M50 38l10 12-10 14-10-14Z" fill="#EBEDE3" opacity="0.72"/>
-        <circle cx="50" cy="29" r="9" fill="#124D1C"/>
-        <circle cx="46.5" cy="27" r="1.7" fill="#EBEDE3"/>
-        <circle cx="53.5" cy="27" r="1.7" fill="#EBEDE3"/>
-        <ellipse cx="25" cy="50" rx="8" ry="4.5" fill="#124D1C" transform="rotate(-30 25 50)"/>
-        <ellipse cx="75" cy="50" rx="8" ry="4.5" fill="#124D1C" transform="rotate(30 75 50)"/>
-        <ellipse cx="30" cy="73" rx="8" ry="4.5" fill="#124D1C" transform="rotate(24 30 73)"/>
-        <ellipse cx="70" cy="73" rx="8" ry="4.5" fill="#124D1C" transform="rotate(-24 70 73)"/>
+      <symbol id="turtle-symbol" viewBox="0 0 120 92">
+        <ellipse cx="60" cy="53" rx="34" ry="26" fill="#124D1C" opacity="0.18" stroke="#0B1849" stroke-width="4"/>
+        <path d="M32 53c13-14 42-14 56 0M60 28v50M41 39l19 14-19 14M79 39 60 53l19 14" fill="none" stroke="#0B1849" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"/>
+        <circle cx="60" cy="17" r="11" fill="#E4B028" opacity="0.3" stroke="#0B1849" stroke-width="4"/>
+        <path d="M60 28v5" fill="none" stroke="#0B1849" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="25" cy="49" rx="13" ry="7" fill="#124D1C" opacity="0.18" stroke="#0B1849" stroke-width="4" transform="rotate(-25 25 49)"/>
+        <ellipse cx="95" cy="49" rx="13" ry="7" fill="#124D1C" opacity="0.18" stroke="#0B1849" stroke-width="4" transform="rotate(25 95 49)"/>
+        <ellipse cx="34" cy="78" rx="13" ry="7" fill="#124D1C" opacity="0.18" stroke="#0B1849" stroke-width="4" transform="rotate(24 34 78)"/>
+        <ellipse cx="86" cy="78" rx="13" ry="7" fill="#124D1C" opacity="0.18" stroke="#0B1849" stroke-width="4" transform="rotate(-24 86 78)"/>
       </symbol>
     </defs>
-    <use href="#turtle-symbol" x="35" y="56" width="128" height="128" opacity="0.22" transform="rotate(-10 99 120)" />
-    <use href="#turtle-symbol" x="922" y="70" width="105" height="105" opacity="0.18" transform="rotate(16 974 122)" />
-    <use href="#turtle-symbol" x="1036" y="324" width="144" height="144" opacity="0.2" transform="rotate(-21 1108 396)" />
-    <use href="#turtle-symbol" x="76" y="512" width="112" height="112" opacity="0.18" transform="rotate(22 132 568)" />
-    <use href="#turtle-symbol" x="565" y="612" width="92" height="92" opacity="0.17" transform="rotate(-7 611 658)" />
-    <use href="#turtle-symbol" x="402" y="190" width="76" height="76" opacity="0.14" transform="rotate(11 440 228)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="-30" y="34" width="210" height="161" opacity="0.28" transform="rotate(-10 75 115)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="196" y="2" width="168" height="129" opacity="0.2" transform="rotate(14 280 67)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="442" y="48" width="226" height="173" opacity="0.23" transform="rotate(-18 555 135)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="720" y="-8" width="188" height="144" opacity="0.21" transform="rotate(9 814 64)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="1000" y="42" width="244" height="187" opacity="0.26" transform="rotate(-13 1122 135)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="82" y="228" width="236" height="181" opacity="0.24" transform="rotate(18 200 318)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="352" y="238" width="190" height="146" opacity="0.19" transform="rotate(-7 447 311)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="610" y="210" width="260" height="199" opacity="0.27" transform="rotate(13 740 310)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="912" y="248" width="206" height="158" opacity="0.22" transform="rotate(-20 1015 327)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="-18" y="484" width="246" height="189" opacity="0.25" transform="rotate(10 105 578)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="256" y="510" width="204" height="156" opacity="0.2" transform="rotate(-16 358 588)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="524" y="486" width="238" height="182" opacity="0.24" transform="rotate(20 643 577)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="820" y="506" width="224" height="172" opacity="0.22" transform="rotate(-8 932 592)" />
+    <use class="turtle-stamp" href="#turtle-symbol" x="1040" y="548" width="188" height="144" opacity="0.19" transform="rotate(16 1134 620)" />
   </svg>
 
   <main class="shell">
