@@ -4,14 +4,13 @@ set -euo pipefail
 OWNER="isikgirayedu"
 REPO="wp-analysis"
 BRANCH="main"
-SITE_URL="https://${OWNER}.github.io/${REPO}/"
 
 if command -v gh >/dev/null 2>&1; then
   GH_BIN="$(command -v gh)"
 elif [ -x "./.tools/gh_2.96.0_macOS_arm64/bin/gh" ]; then
   GH_BIN="./.tools/gh_2.96.0_macOS_arm64/bin/gh"
 else
-  echo "gh bulunamadi. Once GitHub CLI kur veya bu projedeki lokal .tools/gh kurulumunu hazirla."
+  echo "gh bulunamadi."
   exit 1
 fi
 
@@ -35,10 +34,4 @@ else
   "$GH_BIN" repo create "${REPO}" --public --source=. --remote=origin --push
 fi
 
-if ! "$GH_BIN" api "/repos/${OWNER}/${REPO}/pages" >/dev/null 2>&1; then
-  "$GH_BIN" api --method POST "/repos/${OWNER}/${REPO}/pages" \
-    -f "source[branch]=${BRANCH}" \
-    -f "source[path]=/"
-fi
-
-echo "GitHub Pages hazirlanıyor: ${SITE_URL}"
+echo "Kod repo'da: https://github.com/${OWNER}/${REPO}"

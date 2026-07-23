@@ -111,7 +111,8 @@
       position: relative;
     }
 
-    input#searchInput {
+    input#searchInput,
+    input#loginPassword {
       width: 100%;
       height: 48px;
       padding: 0 22px;
@@ -125,11 +126,13 @@
       font-family: inherit;
     }
 
-    input#searchInput::placeholder {
+    input#searchInput::placeholder,
+    input#loginPassword::placeholder {
       color: color-mix(in srgb, var(--ink) 40%, transparent);
     }
 
-    input#searchInput:focus {
+    input#searchInput:focus,
+    input#loginPassword:focus {
       border-color: var(--earth);
       background: #ffffff;
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--earth) 18%, transparent);
@@ -187,6 +190,39 @@
 
     .file-upload.is-ready .file-status {
       color: var(--profit);
+    }
+
+    .auth-panel {
+      width: min(100%, 680px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--card-bg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .auth-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .auth-status {
+      min-height: 18px;
+      font-size: 0.82rem;
+      color: color-mix(in srgb, var(--ink) 55%, var(--earth));
+    }
+
+    .logout-button {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+
+    .logout-button:hover {
+      background: color-mix(in srgb, var(--paper) 70%, transparent);
     }
 
     .pill-group {
@@ -389,8 +425,14 @@
       }
 
       .file-upload,
+      .auth-row,
       .pill-group {
         justify-content: center;
+      }
+
+      .auth-row {
+        flex-direction: column;
+        align-items: stretch;
       }
 
       .search-wrap {
@@ -431,16 +473,24 @@
 
     <div class="loading-bar" id="loadingBar"></div>
 
+    <form class="auth-panel" id="authPanel">
+      <div class="auth-row">
+        <input type="password" id="loginPassword" placeholder="şifre" autocomplete="current-password" />
+        <button type="submit" class="file-button" id="loginButton">giriş</button>
+      </div>
+      <div class="auth-status" id="authStatus"></div>
+    </form>
+
     <!-- Controls -->
-    <div class="control-row">
+    <div class="control-row" id="appControls" style="display:none;">
       <div class="file-upload" id="fileUpload">
         <input type="file" id="chatFileInput" accept=".txt,text/plain" />
-        <button type="button" class="file-button" id="fileButton">dosya seç</button>
-        <span class="file-status" id="fileStatus">seçilmedi</span>
+        <button type="button" class="file-button" id="fileButton">chat yükle</button>
+        <span class="file-status" id="fileStatus">backend bekleniyor</span>
       </div>
 
       <div class="search-wrap">
-        <input type="text" id="searchInput" placeholder="önce sohbet dosyası seç" autocomplete="off" spellcheck="false" disabled />
+        <input type="text" id="searchInput" placeholder="backend kontrol ediliyor" autocomplete="off" spellcheck="false" disabled />
       </div>
 
       <!-- Dataset Toggle: Günlük vs Kümülatif (Overlap yok!) -->
@@ -454,10 +504,12 @@
         <button id="btnDay" class="is-active" onclick="setMode('day')">gün</button>
         <button id="btnMonth" onclick="setMode('month')">ay</button>
       </div>
+
+      <button type="button" class="file-button logout-button" id="logoutButton">çıkış</button>
     </div>
 
     <!-- Chart Panel -->
-    <div class="chart-panel">
+    <div class="chart-panel" id="chartPanel" style="display:none;">
       <div class="panel-ticker">
         <div class="ticker-main">
           <div class="ticker-val" id="tickerVal">—</div>
@@ -548,11 +600,12 @@
     initTurtles();
 
     // ── Application State ─────────────────────────────────────
-    let chatLines = [];
+    let hasChat = false;
     let mode = 'day';        // 'day' | 'month'
     let dataset = 'daily';    // 'daily' | 'cumul'
     let chartInstance = null;
     let debounceTimer = null;
+    let searchSeq = 0;
     let selA = null, selB = null;
     let hoverIndex = -1;
 
@@ -560,23 +613,109 @@
     let chartValues = [];
     let chartCumValues = [];
 
+    const authPanel = document.getElementById('authPanel');
+    const loginPassword = document.getElementById('loginPassword');
+    const authStatus = document.getElementById('authStatus');
+    const appControls = document.getElementById('appControls');
+    const chartPanel = document.getElementById('chartPanel');
     const searchInput = document.getElementById('searchInput');
     const chatFileInput = document.getElementById('chatFileInput');
     const fileButton = document.getElementById('fileButton');
     const fileStatus = document.getElementById('fileStatus');
     const fileUpload = document.getElementById('fileUpload');
+    const logoutButton = document.getElementById('logoutButton');
 
-    // ── Local Chat Data ───────────────────────────────────────
+    // ── Backend Session & Data ────────────────────────────────
     function setLoading(active) {
       const bar = document.getElementById('loadingBar');
       bar.classList.toggle('active', active);
     }
 
     function setDataReady(ready, status) {
+      hasChat = ready;
       fileUpload.classList.toggle('is-ready', ready);
       fileStatus.textContent = status;
       searchInput.disabled = !ready;
-      searchInput.placeholder = ready ? 'kelime ara (örn: tamam, seni, aşk)...' : 'önce sohbet dosyası seç';
+      searchInput.placeholder = ready ? 'kelime ara (örn: tamam, seni, aşk)...' : 'önce chat yükle';
+    }
+
+    function setAuthenticated(authenticated) {
+      authPanel.style.display = authenticated ? 'none' : 'flex';
+      appControls.style.display = authenticated ? 'flex' : 'none';
+      chartPanel.style.display = authenticated ? 'flex' : 'none';
+      if (!authenticated) {
+        setDataReady(false, 'backend bekleniyor');
+        showPlaceholder('giriş yap');
+      }
+    }
+
+    function applyChatMeta(chat) {
+      if (chat && chat.hasChat) {
+        setDataReady(true, `${chat.messageCount.toLocaleString('tr-TR')} mesaj hazır`);
+        showPlaceholder('kelime ara');
+        document.getElementById('tickerDate').textContent = `${chat.firstDate} - ${chat.lastDate}`;
+        return;
+      }
+
+      setDataReady(false, 'chat yok');
+      showPlaceholder('chat yükle');
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+          ...(options.body && !(options.body instanceof FormData) && !options.headers?.['Content-Type'] ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {}),
+        },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(data.error || 'API_ERROR');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+      }
+      return data;
+    }
+
+    async function checkSession() {
+      setLoading(true);
+      try {
+        const session = await api('/api/session');
+        setAuthenticated(session.authenticated);
+        if (session.authenticated) applyChatMeta(session.chat);
+      } catch {
+        setAuthenticated(false);
+        authStatus.textContent = 'backend erişilemedi';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function login(password) {
+      authStatus.textContent = '';
+      setLoading(true);
+      try {
+        const session = await api('/api/login', {
+          method: 'POST',
+          body: JSON.stringify({ password }),
+        });
+        loginPassword.value = '';
+        setAuthenticated(true);
+        applyChatMeta(session.chat);
+      } catch {
+        authStatus.textContent = 'şifre hatalı';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function logout() {
+      await api('/api/logout', { method: 'POST' }).catch(() => {});
+      clearSelection();
+      setAuthenticated(false);
     }
 
     async function handleChatFile(file) {
@@ -584,62 +723,29 @@
       setLoading(true);
       try {
         const raw = await file.text();
-        const parsed = parseChat(raw);
-        if (!parsed.length) throw new Error('No WhatsApp messages found');
-
-        chatLines = parsed;
+        const result = await api('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: raw,
+        });
         clearSelection();
-        setDataReady(true, `${chatLines.length.toLocaleString('tr-TR')} mesaj hazır`);
-        showPlaceholder('kelime ara');
-        document.getElementById('tickerDate').textContent = 'sohbet dosyası hazır';
+        applyChatMeta(result.chat);
         searchInput.focus();
         if (searchInput.value.trim()) runSearch();
-      } catch (e) {
-        chatLines = [];
-        clearSelection();
+      } catch {
         setDataReady(false, 'dosya okunamadı');
-        showPlaceholder('sohbet dosyası okunamadı');
+        showPlaceholder('chat yüklenemedi');
       } finally {
+        chatFileInput.value = '';
         setLoading(false);
       }
     }
 
-    function parseChat(raw) {
-      const lines = raw.split(/\r?\n/);
-      const result = [];
-      let current = null;
-
-      for (const line of lines) {
-        const parsed = parseChatLine(line);
-        if (parsed) {
-          if (current) result.push(current);
-          current = parsed;
-        } else if (current && line.trim()) {
-          current.text += ' ' + line.trim();
-        }
-      }
-      if (current) result.push(current);
-      return result;
-    }
-
-    function parseChatLine(line) {
-      let m = line.match(/^\[(\d{1,2})\.(\d{1,2})\.(\d{4}),\s[\d:.]+\]\s.+?:\s(.*)/);
-      if (m) return { date: `${pad2(m[1])}.${pad2(m[2])}.${m[3]}`, text: m[4] };
-
-      m = line.match(/^(\d{1,2})[./](\d{1,2})[./](\d{2,4}),\s.+?\s-\s.+?:\s(.*)/);
-      if (m) return { date: `${pad2(m[1])}.${pad2(m[2])}.${normalizeYear(m[3])}`, text: m[4] };
-
-      return null;
-    }
-
-    function normalizeYear(year) {
-      return year.length === 2 ? `20${year}` : year;
-    }
-
-    function pad2(value) {
-      return String(value).padStart(2, '0');
-    }
-
+    authPanel.addEventListener('submit', event => {
+      event.preventDefault();
+      login(loginPassword.value);
+    });
+    logoutButton.addEventListener('click', logout);
     fileButton.addEventListener('click', () => chatFileInput.click());
     chatFileInput.addEventListener('change', event => handleChatFile(event.target.files[0]));
 
@@ -666,77 +772,12 @@
     });
 
     // ── Search & Filter Logic ─────────────────────────────────
-    function normalizeSearchText(value) {
-      return value.toLocaleLowerCase('tr-TR');
-    }
+    async function runSearch() {
+      const query = searchInput.value.trim();
+      const seq = ++searchSeq;
 
-    function dateToObject(date) {
-      const [d, m, y] = date.split('.').map(Number);
-      return new Date(y, m - 1, d);
-    }
-
-    function formatDayKey(date) {
-      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-    }
-
-    function formatMonthKey(date) {
-      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`;
-    }
-
-    function getChatDateRange() {
-      let min = Infinity;
-      let max = -Infinity;
-
-      for (const msg of chatLines) {
-        const time = dateToObject(msg.date).getTime();
-        if (!Number.isFinite(time)) continue;
-        min = Math.min(min, time);
-        max = Math.max(max, time);
-      }
-
-      if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
-      return { start: new Date(min), end: new Date(max) };
-    }
-
-    function buildPeriodKeys(currentMode) {
-      const range = getChatDateRange();
-      if (!range) return [];
-
-      const keys = [];
-      if (currentMode === 'day') {
-        const cursor = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate());
-        const end = new Date(range.end.getFullYear(), range.end.getMonth(), range.end.getDate());
-        while (cursor <= end) {
-          keys.push(formatDayKey(cursor));
-          cursor.setDate(cursor.getDate() + 1);
-        }
-        return keys;
-      }
-
-      const cursor = new Date(range.start.getFullYear(), range.start.getMonth(), 1);
-      const end = new Date(range.end.getFullYear(), range.end.getMonth(), 1);
-      while (cursor <= end) {
-        keys.push(formatMonthKey(cursor));
-        cursor.setMonth(cursor.getMonth() + 1);
-      }
-      return keys;
-    }
-
-    function labelForKey(key) {
-      if (mode === 'day') {
-        const [y, m, d] = key.split('-');
-        return `${d}.${m}.${y}`;
-      }
-
-      const [y, m] = key.split('-');
-      const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-      return `${months[parseInt(m, 10) - 1]} ${y}`;
-    }
-
-    function runSearch() {
-      const query = normalizeSearchText(searchInput.value.trim());
-      if (!chatLines.length) {
-        showPlaceholder('sohbet dosyası seçilmedi');
+      if (!hasChat) {
+        showPlaceholder('chat yükle');
         return;
       }
 
@@ -745,45 +786,36 @@
         return;
       }
 
-      const counts = {};
-      let totalMatches = 0;
-      for (const msg of chatLines) {
-        const text = normalizeSearchText(msg.text);
-        let count = 0, idx = 0;
-        while ((idx = text.indexOf(query, idx)) !== -1) { count++; idx += query.length; }
-        if (!count) continue;
-        totalMatches += count;
+      setLoading(true);
+      try {
+        const result = await api(`/api/search?q=${encodeURIComponent(query)}&mode=${mode}`);
+        if (seq !== searchSeq) return;
 
-        let key;
-        if (mode === 'day') {
-          const [d, mo, y] = msg.date.split('.');
-          key = `${y}-${mo}-${d}`;
-        } else {
-          const [, mo, y] = msg.date.split('.');
-          key = `${y}-${mo}`;
+        if (!result.found) {
+          showPlaceholder(`"${query}" sohbet geçmişinde bulunamadı`);
+          return;
         }
-        counts[key] = (counts[key] || 0) + count;
+
+        chartLabels = result.labels;
+        chartValues = result.values;
+        let cum = 0;
+        chartCumValues = chartValues.map(value => (cum += value, cum));
+
+        renderCurrentView(result.query || query);
+        updateStats(result.query || query, result.stats);
+      } catch (error) {
+        if (error.status === 401) {
+          setAuthenticated(false);
+          return;
+        }
+        showPlaceholder('arama yapılamadı');
+      } finally {
+        if (seq === searchSeq) setLoading(false);
       }
-
-      if (!totalMatches) {
-        showPlaceholder(`"${query}" kelimesi sohbet geçmişinde bulunamadı`);
-        return;
-      }
-
-      const sortedKeys = buildPeriodKeys(mode);
-      if (!sortedKeys.length) sortedKeys.push(...Object.keys(counts).sort());
-
-      chartLabels = sortedKeys.map(labelForKey);
-      chartValues = sortedKeys.map(k => counts[k] || 0);
-      let cum = 0;
-      chartCumValues = chartValues.map(v => (cum += v, cum));
-
-      renderCurrentView(query);
-      updateStats(query, chartValues, chartLabels);
     }
 
     function renderCurrentView(query) {
-      query = query || normalizeSearchText(searchInput.value.trim());
+      query = query || searchInput.value.trim();
       const vals = dataset === 'daily' ? chartValues : chartCumValues;
       const isDaily = dataset === 'daily';
 
@@ -977,24 +1009,18 @@
     }
 
     // ── Update Statistics Panel ───────────────────────────────
-    function updateStats(query, values, labels) {
-      const total = values.reduce((a, b) => a + b, 0);
-      const maxVal = Math.max(...values);
-      const maxIdx = values.indexOf(maxVal);
-      const activeCount = values.filter(v => v > 0).length;
-      const avg = activeCount ? total / activeCount : 0;
-
-      document.getElementById('statTotal').textContent = total.toLocaleString('tr-TR');
+    function updateStats(query, stats) {
+      document.getElementById('statTotal').textContent = stats.total.toLocaleString('tr-TR');
       document.getElementById('statKeyword').textContent = `"${query}"`;
-      document.getElementById('statPeak').textContent = labels[maxIdx];
-      document.getElementById('statPeakCount').textContent = `${maxVal} kez`;
-      document.getElementById('statDays').textContent = activeCount.toLocaleString('tr-TR');
-      document.getElementById('statAvg').textContent = avg.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+      document.getElementById('statPeak').textContent = stats.peakLabel;
+      document.getElementById('statPeakCount').textContent = `${stats.peakCount} kez`;
+      document.getElementById('statDays').textContent = stats.activeCount.toLocaleString('tr-TR');
+      document.getElementById('statAvg').textContent = stats.averageActive.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
       document.getElementById('statsGrid').style.display = 'grid';
     }
 
-    setDataReady(false, 'seçilmedi');
-    showPlaceholder('sohbet dosyası seçilmedi');
+    setAuthenticated(false);
+    checkSession();
   </script>
 </body>
 </html>

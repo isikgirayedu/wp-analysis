@@ -1,0 +1,19 @@
+{
+  "name": "wp-analysis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private backend for WhatsApp chat analysis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check tests/backend-smoke.js && node tests/backend-smoke.js",
+    "test": "node tests/backend-smoke.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
