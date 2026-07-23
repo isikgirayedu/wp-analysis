@@ -1,4 +1,6 @@
 _chat.txt
+ChatStorage.sqlite
+ChatStorage.sqlite-*
 WhatsApp Chat*.txt
 WhatsApp Chat*.zip
 istekler_ozeti.md
