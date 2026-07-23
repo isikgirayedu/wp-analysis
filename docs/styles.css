@@ -172,6 +172,7 @@ h2 {
   padding: 24px;
   display: grid;
   gap: 12px;
+  text-align: center;
 }
 
 .unlock-form label {
@@ -194,6 +195,10 @@ input {
   color: var(--navy);
   padding: 0 12px;
   outline: none;
+}
+
+.unlock-form input {
+  text-align: center;
 }
 
 input::placeholder {
