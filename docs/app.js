@@ -500,7 +500,7 @@ function renderChart(labels, values) {
           grid: { color: 'rgba(11, 24, 73, 0.08)', drawTicks: false },
           ticks: {
             color: 'rgba(11, 24, 73, 0.68)',
-            maxTicksLimit: state.mode === 'day' ? 9 : 16,
+            maxTicksLimit: maxXTicks(),
             maxRotation: 0,
             padding: 10,
           },
@@ -602,6 +602,12 @@ function setBusy(busy, label) {
 
 function currentValues() {
   return state.dataset === 'daily' ? state.values : state.cumulativeValues;
+}
+
+function maxXTicks() {
+  if (window.innerWidth <= 420) return state.mode === 'day' ? 5 : 4;
+  if (window.innerWidth <= 820) return state.mode === 'day' ? 7 : 6;
+  return state.mode === 'day' ? 9 : 16;
 }
 
 function labelForKey(key, mode) {
