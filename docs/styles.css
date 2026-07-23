@@ -18,10 +18,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(228, 176, 40, 0.2), transparent 25%),
-    radial-gradient(circle at 88% 28%, rgba(18, 77, 28, 0.14), transparent 28%),
-    linear-gradient(135deg, rgba(235, 237, 227, 0.96), rgba(235, 237, 227, 0.78));
+  background: var(--cream);
   color: var(--navy);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow-x: hidden;
@@ -87,7 +84,7 @@ button:disabled {
   z-index: 1;
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 28px 0 42px;
+  padding: 16px 0 36px;
 }
 
 .topbar {
@@ -138,8 +135,9 @@ h2 {
   inset: 0;
   z-index: 10;
   display: grid;
-  place-items: center;
-  padding: 24px;
+  align-items: start;
+  justify-items: center;
+  padding: clamp(54px, 12vh, 100px) 24px 24px;
   background: rgba(11, 24, 73, 0.48);
   backdrop-filter: blur(6px);
 }
