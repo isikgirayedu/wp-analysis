@@ -147,7 +147,8 @@ els.chatFileInput.addEventListener('change', async event => {
     const raw = await file.text();
     loadChat(raw);
     openApp();
-    showPlaceholder('kelime ara');
+    els.searchInput.value = '';
+    runSearch();
   } catch {
     els.metaLine.textContent = 'Dosya okunamadi';
   } finally {
@@ -171,7 +172,7 @@ async function unlockWithPassword() {
     els.passwordInput.value = '';
     els.unlockStatus.textContent = '';
     openApp();
-    showPlaceholder('kelime ara');
+    runSearch();
   } catch {
     els.unlockStatus.textContent = 'Sifre hatali veya veri acilamadi';
   } finally {
@@ -323,12 +324,7 @@ function runSearch() {
     return;
   }
 
-  if (!query) {
-    showPlaceholder('kelime ara');
-    return;
-  }
-
-  const result = searchChat(query, state.mode);
+  const result = query ? searchChat(query, state.mode) : searchAllMessages(state.mode);
   if (seq !== state.searchSeq) return;
 
   if (!result.found) {
@@ -346,6 +342,17 @@ function runSearch() {
 
   renderCurrentView(result.query);
   updateStats(result.query, result.stats);
+}
+
+function searchAllMessages(mode) {
+  const counts = new Map();
+
+  for (const message of state.messages) {
+    const key = mode === 'day' ? dayKey(message.date) : monthKey(message.date);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  return buildSearchResult('tum mesajlar', mode, counts, state.messages.length);
 }
 
 function searchChat(query, mode) {
@@ -369,13 +376,18 @@ function searchChat(query, mode) {
     counts.set(key, (counts.get(key) || 0) + count);
   }
 
-  if (!total) {
-    return { query, mode, found: false, labels: [], values: [], stats: null };
-  }
+  return buildSearchResult(query, mode, counts, total);
+}
 
+function buildSearchResult(query, mode, counts, total) {
   const keys = buildPeriodKeys(mode);
   const labels = keys.map(key => labelForKey(key, mode));
   const values = keys.map(key => counts.get(key) || 0);
+
+  if (!total) {
+    return { query, mode, found: false, labels, values, stats: null };
+  }
+
   const maxValue = Math.max(...values);
   const maxIndex = values.indexOf(maxValue);
   const activeCount = values.filter(value => value > 0).length;
