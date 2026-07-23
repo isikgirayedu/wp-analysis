@@ -558,9 +558,11 @@ function setMetaLine() {
   els.metaLine.textContent = `${state.meta.count.toLocaleString('tr-TR')} mesaj | ${state.meta.firstDate} - ${state.meta.lastDate}`;
 }
 
-function setBusy(busy, label = '') {
+function setBusy(busy, label) {
   els.unlockButton.disabled = busy;
-  els.unlockStatus.textContent = label;
+  if (typeof label === 'string') {
+    els.unlockStatus.textContent = label;
+  }
 }
 
 function currentValues() {
