@@ -1,0 +1,4 @@
+[10.02.2026, 10:00:00] Isik: tamam bugun kahve
+[10.02.2026, 10:05:00] Bilge: tamam olur
+[11.02.2026, 12:00:00] Isik: kahve ve analiz
+[12.03.2026, 09:30:00] Bilge: tamam tekrar

@@ -7,10 +7,7 @@ Minimal WhatsApp sohbet analiz sitesi. Uygulama statik calisir; sohbet export do
 ```bash
 git add index.html README.md .gitignore vendor/chart.umd.min.js
 git commit -m "Publish private local-file chat analyzer"
-gh repo create wp-analysis --public --source=. --remote=origin --push
-gh api --method POST /repos/isikgirayedu/wp-analysis/pages \
-  -f "source[branch]=main" \
-  -f "source[path]=/"
+./scripts/publish-github-pages.sh
 ```
 
 Site adresi:
