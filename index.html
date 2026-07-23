@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat Analiz 🐢</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f5f0ff;
+      --surface: #ffffff;
+      --surface2:#faf7ff;
+      --border:  #e4d9f7;
+      --border2: #d0bbf0;
+      --p1:      #9f7aea;
+      --p2:      #805ad5;
+      --p3:      #6b46c1;
+      --pdim:    #b794f4;
+      --text:    #3d2b6b;
+      --muted:   #9d87c0;
+      --muted2:  #c4b5e8;
+      --radius:  16px;
+      --shadow:  0 4px 24px rgba(107,70,193,0.08);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 20px 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── Turtle background ── */
+    .turtle-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .turtle {
+      position: absolute;
+      opacity: 0.12;
+      animation: float linear infinite;
+      user-select: none;
+    }
+    @keyframes float {
+      0%   { transform: translateY(0px) rotate(var(--r)); }
+      50%  { transform: translateY(-18px) rotate(var(--r)); }
+      100% { transform: translateY(0px) rotate(var(--r)); }
+    }
+
+    /* ── Page content ── */
+    .page { position: relative; z-index: 1; width: 100%; max-width: 1000px; }
+
+    header { text-align: center; margin-bottom: 32px; }
+    header h1 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Controls row ── */
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    input#searchInput {
+      flex: 1;
+      min-width: 180px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+      box-shadow: var(--shadow);
+    }
+    input#searchInput::placeholder { color: var(--muted2); }
+    input#searchInput:focus {
+      border-color: var(--p1);
+      box-shadow: 0 0 0 3px rgba(159,122,234,0.15);
+    }
+
+    .pill-group {
+      display: flex;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .pill-group button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 11px 18px;
+      transition: background 0.18s, color 0.18s;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .pill-group button.active {
+      background: var(--p1);
+      color: #fff;
+      border-radius: 999px;
+    }
+
+    /* ── Chart card ── */
+    .chart-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    /* ticker */
+    .ticker-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 24px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      flex-wrap: wrap;
+    }
+    .ticker-block { display: flex; flex-direction: column; gap: 1px; }
+    .t-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .t-val   { font-size: 1.5rem; font-weight: 600; color: var(--p2); font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .t-sub   { font-size: 0.7rem; color: var(--muted2); }
+    .ticker-sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+
+    .range-badge {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1.5px solid var(--border2);
+      border-radius: 10px;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .range-badge.visible { opacity: 1; }
+    .rb-dates { color: var(--muted); }
+    .rb-delta { font-weight: 700; }
+    .rb-delta.pos { color: #6b46c1; }
+    .rb-delta.neg { color: #9f7aea; opacity: 0.7; }
+    .rb-hint { font-size: 0.62rem; color: var(--muted2); }
+
+    /* chart inner */
+    .chart-inner {
+      position: relative;
+      padding: 20px 20px 12px;
+      cursor: crosshair;
+      /* tall enough to fill screen nicely */
+      height: calc(100vh - 340px);
+      min-height: 320px;
+      max-height: 580px;
+    }
+    .chart-inner canvas { width: 100% !important; height: 100% !important; }
+
+    .placeholder {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted2); font-size: 0.9rem; letter-spacing: 0.05em;
+      pointer-events: none;
+    }
+    .click-hint {
+      position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+      font-size: 0.65rem; color: var(--muted2); letter-spacing: 0.03em;
+      pointer-events: none; white-space: nowrap; display: none;
+    }
+
+    /* legend */
+    .chart-legend {
+      display: flex; gap: 16px;
+      padding: 10px 24px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--muted); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+      width: 100%;
+    }
+    @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+    .stat-card .label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 6px; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 600; color: var(--p2); font-variant-numeric: tabular-nums; }
+    .stat-card .sub { font-size: 0.72rem; color: var(--muted2); margin-top: 3px; }
+
+    /* loading */
+    .loading-bar {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--p1), var(--pdim), transparent);
+      border-radius: 2px; width: 100%; display: none; margin-bottom: 24px;
+    }
+    .loading-bar.active { display: block; animation: lpulse 1.3s infinite; }
+    @keyframes lpulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+  </style>
+</head>
+<body>
+
+<!-- Turtle background -->
+<div class="turtle-bg" id="turtleBg"></div>
+
+<div class="page">
+  <header><h1>chat analiz 🐢</h1></header>
+  <div class="loading-bar" id="loadingBar"></div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="kelime ara..." autocomplete="off" spellcheck="false" />
+    <!-- Günlük / Kümülatif -->
+    <div class="pill-group">
+      <button id="btnDaily" class="active" onclick="setDataset('daily')">Günlük</button>
+      <button id="btnCumul" onclick="setDataset('cumul')">Kümülatif</button>
+    </div>
+    <!-- Gün / Ay -->
+    <div class="pill-group">
+      <button id="btnDay" class="active" onclick="setMode('day')">Gün</button>
+      <button id="btnMonth" onclick="setMode('month')">Ay</button>
+    </div>
+  </div>
+
+  <!-- Chart card -->
+  <div class="chart-card" id="chartCard">
+    <div class="ticker-bar">
+      <div class="ticker-block">
+        <div class="t-label" id="curLabel">—</div>
+        <div class="t-val" id="curVal">—</div>
+        <div class="t-sub" id="curDate"></div>
+      </div>
+      <div class="ticker-sep"></div>
+      <div class="ticker-block">
+        <div class="t-label" id="secLabel">Kümülatif</div>
+        <div class="t-val" id="secVal">—</div>
+        <div class="t-sub" id="secDate">toplam o güne kadar</div>
+      </div>
+      <div class="range-badge" id="rangeBadge">
+        <span class="rb-dates" id="rbDates"></span>
+        <span class="rb-delta" id="rbDelta"></span>
+        <span class="rb-hint">iki nokta arası</span>
+      </div>
+    </div>
+
+    <div class="chart-inner" id="chartInner">
+      <div class="placeholder" id="placeholder">bir kelime yazın 🐢</div>
+      <canvas id="myChart" style="display:none;"></canvas>
+      <div class="click-hint" id="clickHint">tıkla → nokta seç &nbsp;·&nbsp; iki kez seç → değişimi gör</div>
+    </div>
+
+    <div class="chart-legend" id="chartLegend" style="display:none;">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#9f7aea;"></div>
+        <span id="legendLabel">günlük geçiş</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow" style="display:none;">
+    <div class="stat-card">
+      <div class="label">Toplam Geçiş</div>
+      <div class="value" id="statTotal">0</div>
+      <div class="sub" id="statKeyword">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">En Yoğun Dönem</div>
+      <div class="value" id="statPeak">—</div>
+      <div class="sub" id="statPeakCount">0 kez</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Aktif Gün</div>
+      <div class="value" id="statDays">—</div>
+      <div class="sub">en az 1 geçiş olan</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Günlük Ortalama</div>
+      <div class="value" id="statAvg">—</div>
+      <div class="sub">aktif günlerde</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Turtle background ─────────────────────────────────────
+const TURTLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- shell -->
+  <ellipse cx="50" cy="55" rx="28" ry="24" fill="#b794f4" opacity="0.9"/>
+  <ellipse cx="50" cy="55" rx="22" ry="18" fill="#9f7aea"/>
+  <!-- shell pattern -->
+  <polygon points="50,38 60,50 50,62 40,50" fill="#805ad5" opacity="0.5"/>
+  <polygon points="50,38 64,44 60,50" fill="#805ad5" opacity="0.3"/>
+  <polygon points="60,50 64,62 50,62" fill="#805ad5" opacity="0.3"/>
+  <polygon points="50,62 36,62 40,50" fill="#805ad5" opacity="0.3"/>
+  <polygon points="40,50 36,44 50,38" fill="#805ad5" opacity="0.3"/>
+  <!-- head -->
+  <circle cx="50" cy="30" r="9" fill="#c4b5e8"/>
+  <!-- eyes -->
+  <circle cx="47" cy="28" r="2" fill="#3d2b6b"/>
+  <circle cx="53" cy="28" r="2" fill="#3d2b6b"/>
+  <circle cx="47.8" cy="27.2" r="0.7" fill="white"/>
+  <circle cx="53.8" cy="27.2" r="0.7" fill="white"/>
+  <!-- smile -->
+  <path d="M47 32 Q50 35 53 32" stroke="#3d2b6b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- legs -->
+  <ellipse cx="26" cy="48" rx="8" ry="5" fill="#c4b5e8" transform="rotate(-30 26 48)"/>
+  <ellipse cx="74" cy="48" rx="8" ry="5" fill="#c4b5e8" transform="rotate(30 74 48)"/>
+  <ellipse cx="30" cy="70" rx="8" ry="5" fill="#c4b5e8" transform="rotate(20 30 70)"/>
+  <ellipse cx="70" cy="70" rx="8" ry="5" fill="#c4b5e8" transform="rotate(-20 70 70)"/>
+  <!-- tail -->
+  <ellipse cx="50" cy="80" rx="4" ry="6" fill="#c4b5e8"/>
+</svg>`;
+
+function spawnTurtles() {
+  const bg = document.getElementById('turtleBg');
+  const placements = [
+    { top:  '5%',  left: '3%',  size: 80,  r:  '-15deg', delay: '0s',   dur: '6s'  },
+    { top: '15%',  left: '88%', size: 60,  r:   '20deg', delay: '1.2s', dur: '7s'  },
+    { top: '35%',  left: '1%',  size: 50,  r:  '-5deg',  delay: '0.4s', dur: '5s'  },
+    { top: '60%',  left: '90%', size: 70,  r:   '30deg', delay: '2s',   dur: '8s'  },
+    { top: '75%',  left: '5%',  size: 55,  r:  '-25deg', delay: '0.8s', dur: '6.5s'},
+    { top: '82%',  left: '78%', size: 45,  r:   '10deg', delay: '1.6s', dur: '7.5s'},
+    { top: '48%',  left: '94%', size: 40,  r:  '-40deg', delay: '3s',   dur: '9s'  },
+    { top:  '2%',  left: '55%', size: 35,  r:   '5deg',  delay: '0.2s', dur: '5.5s'},
+  ];
+  placements.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'turtle';
+    div.style.cssText = `top:${p.top};left:${p.left};width:${p.size}px;height:${p.size}px;--r:${p.r};animation-delay:${p.delay};animation-duration:${p.dur};`;
+    div.innerHTML = TURTLE_SVG;
+    bg.appendChild(div);
+  });
+}
+spawnTurtles();
+
+// ── State ─────────────────────────────────────────────────
+let chatLines = [];
+let mode = 'day';
+let dataset = 'daily'; // 'daily' | 'cumul'
+let chartInstance = null;
+let debounceTimer = null;
+let selA = null, selB = null;
+let hoverIndex = -1;
+let chartLabels = [], chartValues = [], chartCumValues = [];
+
+// ── Load ──────────────────────────────────────────────────
+async function loadChat() {
+  const bar = document.getElementById('loadingBar');
+  bar.classList.add('active');
+  try {
+    const res = await fetch('./_chat.txt');
+    const raw = await res.text();
+    chatLines = parseChat(raw);
+    document.getElementById('placeholder').textContent = 'bir kelime yazın 🐢';
+  } catch(e) {
+    document.getElementById('placeholder').textContent = '_chat.txt yüklenemedi';
+  }
+  bar.classList.remove('active');
+}
+
+function parseChat(raw) {
+  const lines = raw.split(/\r?\n/);
+  const result = [];
+  let current = null;
+  for (const line of lines) {
+    const m = line.match(/^\[(\d{2}\.\d{2}\.\d{4}),\s[\d:]+\]\s.+?:\s(.*)/);
+    if (m) { if (current) result.push(current); current = { date: m[1], text: m[2] }; }
+    else if (current && line.trim()) current.text += ' ' + line.trim();
+  }
+  if (current) result.push(current);
+  return result;
+}
+
+// ── Toggle handlers ───────────────────────────────────────
+function setDataset(d) {
+  dataset = d;
+  document.getElementById('btnDaily').classList.toggle('active', d==='daily');
+  document.getElementById('btnCumul').classList.toggle('active', d==='cumul');
+  clearSelection();
+  if (chartLabels.length) renderActiveChart();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnDay').classList.toggle('active', m==='day');
+  document.getElementById('btnMonth').classList.toggle('active', m==='month');
+  clearSelection();
+  runSearch();
+}
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => { clearSelection(); runSearch(); }, 220);
+});
+
+// ── Search ────────────────────────────────────────────────
+function runSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!query || !chatLines.length) { showPlaceholder(query ? 'yükleniyor…' : 'bir kelime yazın 🐢'); return; }
+
+  const counts = {};
+  for (const msg of chatLines) {
+    const text = msg.text.toLowerCase();
+    let count = 0, idx = 0;
+    while ((idx = text.indexOf(query, idx)) !== -1) { count++; idx += query.length; }
+    if (!count) continue;
+    let key;
+    if (mode === 'day') { const [d,mo,y]=msg.date.split('.'); key=`${y}-${mo}-${d}`; }
+    else { const [,mo,y]=msg.date.split('.'); key=`${y}-${mo}`; }
+    counts[key] = (counts[key]||0)+count;
+  }
+  const sortedKeys = Object.keys(counts).sort();
+  if (!sortedKeys.length) { showPlaceholder(`"${query}" bulunamadı`); return; }
+
+  chartLabels = sortedKeys.map(k => {
+    if (mode==='day') { const [y,m,d]=k.split('-'); return `${d}.${m}.${y}`; }
+    const [y,m]=k.split('-');
+    const mn=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    return `${mn[parseInt(m)-1]} ${y}`;
+  });
+  chartValues = sortedKeys.map(k => counts[k]);
+  let cum = 0;
+  chartCumValues = chartValues.map(v => (cum += v, cum));
+
+  renderActiveChart(query);
+  updateStats(query, chartValues, chartLabels);
+}
+
+function renderActiveChart(query) {
+  query = query || document.getElementById('searchInput').value.trim().toLowerCase();
+  const vals = dataset === 'daily' ? chartValues : chartCumValues;
+  const isDaily = dataset === 'daily';
+
+  document.getElementById('legendLabel').textContent = isDaily ? 'günlük geçiş' : 'kümülatif toplam';
+  document.getElementById('secLabel').textContent = isDaily ? 'Kümülatif' : 'Günlük';
+
+  const last = vals.length - 1;
+  document.getElementById('curLabel').textContent = query;
+  document.getElementById('curVal').textContent = vals[last].toLocaleString('tr-TR');
+  document.getElementById('curDate').textContent = chartLabels[last];
+  if (isDaily) {
+    document.getElementById('secVal').textContent = chartCumValues[last].toLocaleString('tr-TR');
+    document.getElementById('secDate').textContent = 'toplam o güne kadar';
+  } else {
+    document.getElementById('secVal').textContent = chartValues[last];
+    document.getElementById('secDate').textContent = 'o gün geçiş';
+  }
+
+  renderChart(chartLabels, vals, query, isDaily);
+}
+
+// ── Placeholder ───────────────────────────────────────────
+function showPlaceholder(msg) {
+  document.getElementById('placeholder').textContent = msg;
+  document.getElementById('placeholder').style.display = 'flex';
+  document.getElementById('myChart').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('chartLegend').style.display = 'none';
+  document.getElementById('clickHint').style.display = 'none';
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+}
+
+// ── Selection ─────────────────────────────────────────────
+function clearSelection() {
+  selA = selB = null;
+  document.getElementById('rangeBadge').classList.remove('visible');
+  if (chartInstance) chartInstance.update('none');
+}
+
+function applySelection(idx) {
+  const vals = dataset === 'daily' ? chartValues : chartCumValues;
+  if (!selA) {
+    selA = { index: idx };
+  } else if (!selB && idx !== selA.index) {
+    selB = { index: idx };
+    const a = selA.index < selB.index ? selA : selB;
+    const b = selA.index < selB.index ? selB : selA;
+    const delta = vals[b.index] - vals[a.index];
+    const pct = vals[a.index] > 0 ? ((delta/vals[a.index])*100).toFixed(1) : '∞';
+    const sign = delta >= 0 ? '+' : '';
+    document.getElementById('rbDates').textContent = `${chartLabels[a.index]} → ${chartLabels[b.index]}`;
+    const el = document.getElementById('rbDelta');
+    el.textContent = `${sign}${delta} (${sign}${pct}%)`;
+    el.className = 'rb-delta ' + (delta >= 0 ? 'pos' : 'neg');
+    document.getElementById('rangeBadge').classList.add('visible');
+  } else {
+    selA = { index: idx }; selB = null;
+    document.getElementById('rangeBadge').classList.remove('visible');
+  }
+  if (chartInstance) chartInstance.update('none');
+}
+
+// ── Plugin ────────────────────────────────────────────────
+const stockPlugin = {
+  id: 'stockPlugin',
+  afterDraw(chart) {
+    const { ctx, chartArea: { left,right,top,bottom }, scales } = chart;
+    const xs = scales.x;
+    const vals = dataset === 'daily' ? chartValues : chartCumValues;
+
+    const drawPin = (idx, color) => {
+      if (idx<0||idx>=chartLabels.length) return;
+      const x = xs.getPixelForValue(idx);
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom);
+      ctx.strokeStyle = color+'88'; ctx.lineWidth=1; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+      const ys = scales.y;
+      const yp = ys.getPixelForValue(vals[idx]);
+      ctx.beginPath(); ctx.arc(x,yp,5,0,Math.PI*2);
+      ctx.fillStyle=color; ctx.fill();
+      ctx.strokeStyle='#f5f0ff'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.restore();
+    };
+
+    if (selA && selB) {
+      const ia=selA.index, ib=selB.index;
+      const xa=xs.getPixelForValue(Math.min(ia,ib));
+      const xb=xs.getPixelForValue(Math.max(ia,ib));
+      ctx.save();
+      ctx.fillStyle='rgba(159,122,234,0.07)';
+      ctx.fillRect(xa,top,xb-xa,bottom-top);
+      ctx.restore();
+      drawPin(ia,'#9f7aea');
+      drawPin(ib,'#6b46c1');
+    } else if (selA) {
+      drawPin(selA.index,'#9f7aea');
+    }
+
+    if (hoverIndex>=0&&hoverIndex<chartLabels.length) {
+      const x=xs.getPixelForValue(hoverIndex);
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom);
+      ctx.strokeStyle='rgba(159,122,234,0.2)'; ctx.lineWidth=1; ctx.stroke();
+      ctx.restore();
+    }
+  }
+};
+
+// ── Render chart ──────────────────────────────────────────
+function renderChart(labels, values, query, isDaily) {
+  document.getElementById('placeholder').style.display='none';
+  const canvas = document.getElementById('myChart');
+  canvas.style.display = 'block';
+  document.getElementById('clickHint').style.display = 'block';
+  document.getElementById('chartLegend').style.display = 'flex';
+
+  if (chartInstance) chartInstance.destroy();
+
+  const accentColor = isDaily ? '#9f7aea' : '#805ad5';
+
+  chartInstance = new Chart(canvas, {
+    type:'line',
+    plugins:[stockPlugin],
+    data:{
+      labels,
+      datasets:[{
+        label: isDaily ? 'günlük' : 'kümülatif',
+        data: values,
+        borderColor: accentColor,
+        backgroundColor: ctx2 => {
+          const {ctx:c, chartArea} = ctx2.chart;
+          if (!chartArea) return 'transparent';
+          const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          g.addColorStop(0, isDaily ? 'rgba(159,122,234,0.18)' : 'rgba(128,90,213,0.15)');
+          g.addColorStop(1, 'rgba(245,240,255,0)');
+          return g;
+        },
+        pointBackgroundColor: accentColor,
+        pointBorderColor: '#f5f0ff',
+        pointBorderWidth: 1.5,
+        pointRadius: values.length > 80 ? 0 : 3,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: accentColor,
+        pointHoverBorderWidth: 2,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.38,
+      }]
+    },
+    options:{
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      onHover: (event, elements, chart) => {
+        if (!event.native) return;
+        const pts = chart.getElementsAtEventForMode(event.native,'index',{intersect:false},false);
+        if (pts.length) {
+          const i = pts[0].index;
+          hoverIndex = i;
+          document.getElementById('curLabel').textContent = query;
+          document.getElementById('curVal').textContent = values[i].toLocaleString('tr-TR');
+          document.getElementById('curDate').textContent = labels[i];
+          const other = isDaily ? chartCumValues : chartValues;
+          document.getElementById('secVal').textContent = other[i].toLocaleString('tr-TR');
+          chart.update('none');
+        }
+      },
+      plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+      scales:{
+        x:{
+          grid:{ color:'rgba(159,122,234,0.06)', drawTicks:false },
+          ticks:{ color:'#c4b5e8', maxTicksLimit: mode==='day'?8:18, font:{size:10}, maxRotation:0, padding:8 },
+          border:{ color:'#e4d9f7' }
+        },
+        y:{
+          position:'left',
+          grid:{ color:'rgba(159,122,234,0.06)', drawTicks:false },
+          ticks:{ color:'#c4b5e8', font:{size:10}, precision:0, padding:8 },
+          border:{ color:'#e4d9f7' }
+        }
+      }
+    }
+  });
+
+  canvas.addEventListener('click', e=>{
+    if (!chartInstance) return;
+    const pts=chartInstance.getElementsAtEventForMode(e,'index',{intersect:false},false);
+    if (pts.length) applySelection(pts[0].index);
+  });
+  canvas.addEventListener('mouseleave', ()=>{
+    hoverIndex=-1;
+    if (chartInstance) chartInstance.update('none');
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────
+function updateStats(query, values, labels) {
+  const total = values.reduce((a,b)=>a+b,0);
+  const maxVal = Math.max(...values);
+  const maxIdx = values.indexOf(maxVal);
+  const avg = (total/values.length).toFixed(1);
+  document.getElementById('statTotal').textContent = total.toLocaleString('tr-TR');
+  document.getElementById('statKeyword').textContent = `"${query}"`;
+  document.getElementById('statPeak').textContent = labels[maxIdx];
+  document.getElementById('statPeakCount').textContent = `${maxVal} kez`;
+  document.getElementById('statDays').textContent = values.length;
+  document.getElementById('statAvg').textContent = avg;
+  document.getElementById('statsRow').style.display = 'grid';
+}
+
+loadChat();
+</script>
+</body>
+</html>
