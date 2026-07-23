@@ -435,7 +435,7 @@ function buildPeriodKeys(mode) {
 function renderCurrentView(query = els.searchInput.value.trim()) {
   const values = currentValues();
   const lastIndex = values.length - 1;
-  els.tickerQuery.textContent = `"${query}" (${state.dataset === 'daily' ? 'gunluk' : 'kumulatif'})`;
+  els.tickerQuery.textContent = `"${query}" (${state.dataset === 'daily' ? 'donemlik' : 'kumulatif'})`;
   els.tickerValue.textContent = values[lastIndex].toLocaleString('tr-TR');
   els.tickerDate.textContent = state.labels[lastIndex];
   renderChart(state.labels, values);

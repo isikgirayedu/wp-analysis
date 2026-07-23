@@ -493,9 +493,9 @@
         <input type="text" id="searchInput" placeholder="backend kontrol ediliyor" autocomplete="off" spellcheck="false" disabled />
       </div>
 
-      <!-- Dataset Toggle: Günlük vs Kümülatif (Overlap yok!) -->
+      <!-- Dataset Toggle: Dönemlik vs Kümülatif (Overlap yok!) -->
       <div class="pill-group">
-        <button id="btnDaily" class="is-active" onclick="setDataset('daily')">günlük</button>
+        <button id="btnDaily" class="is-active" onclick="setDataset('daily')">dönemlik</button>
         <button id="btnCumul" onclick="setDataset('cumul')">kümülatif</button>
       </div>
 
@@ -820,7 +820,7 @@
       const isDaily = dataset === 'daily';
 
       const lastIdx = vals.length - 1;
-      document.getElementById('tickerQuery').textContent = `"${query}" (${isDaily ? 'günlük' : 'kümülatif'})`;
+      document.getElementById('tickerQuery').textContent = `"${query}" (${isDaily ? 'dönemlik' : 'kümülatif'})`;
       document.getElementById('tickerVal').textContent = vals[lastIdx].toLocaleString('tr-TR');
       document.getElementById('tickerDate').textContent = chartLabels[lastIdx];
 
@@ -939,7 +939,7 @@
         data: {
           labels,
           datasets: [{
-            label: isDaily ? 'günlük' : 'kümülatif',
+            label: isDaily ? 'dönemlik' : 'kümülatif',
             data: values,
             borderColor: lineColor,
             backgroundColor: ctx => {
