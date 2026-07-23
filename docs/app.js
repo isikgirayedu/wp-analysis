@@ -1,10 +1,16 @@
 const ENCRYPTED_CHAT_URL = './data/chat.enc.json';
+const COLORS = {
+  navy: '#0B1849',
+  green: '#124D1C',
+  gold: '#E4B028',
+  cream: '#EBEDE3',
+};
 
 const state = {
   messages: [],
   meta: null,
   mode: 'day',
-  dataset: 'daily',
+  dataset: 'cumulative',
   chart: null,
   labels: [],
   values: [],
@@ -77,7 +83,7 @@ const stockPlugin = {
       ctx.arc(x, y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = COLORS.cream;
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.restore();
@@ -89,13 +95,13 @@ const stockPlugin = {
       const x1 = xs.getPixelForValue(left);
       const x2 = xs.getPixelForValue(right);
       ctx.save();
-      ctx.fillStyle = 'rgba(17, 109, 110, 0.09)';
+      ctx.fillStyle = 'rgba(18, 77, 28, 0.1)';
       ctx.fillRect(x1, area.top, x2 - x1, area.bottom - area.top);
       ctx.restore();
-      drawMarker(state.selectedA.index, '#b05a4a');
-      drawMarker(state.selectedB.index, '#116d6e');
+      drawMarker(state.selectedA.index, COLORS.gold);
+      drawMarker(state.selectedB.index, COLORS.green);
     } else if (state.selectedA) {
-      drawMarker(state.selectedA.index, '#b05a4a');
+      drawMarker(state.selectedA.index, COLORS.gold);
     }
 
     if (state.hoverIndex >= 0) {
@@ -104,7 +110,7 @@ const stockPlugin = {
       ctx.beginPath();
       ctx.moveTo(x, area.top);
       ctx.lineTo(x, area.bottom);
-      ctx.strokeStyle = 'rgba(23, 32, 42, 0.18)';
+      ctx.strokeStyle = 'rgba(11, 24, 73, 0.2)';
       ctx.stroke();
       ctx.restore();
     }
@@ -414,7 +420,7 @@ function renderChart(labels, values) {
   if (state.chart) state.chart.destroy();
 
   const isDaily = state.dataset === 'daily';
-  const lineColor = isDaily ? '#b05a4a' : '#116d6e';
+  const lineColor = isDaily ? COLORS.gold : COLORS.green;
 
   state.chart = new Chart(els.chartCanvas, {
     type: 'line',
@@ -428,12 +434,12 @@ function renderChart(labels, values) {
           const area = context.chart.chartArea;
           if (!area) return 'transparent';
           const gradient = context.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-          gradient.addColorStop(0, isDaily ? 'rgba(176, 90, 74, 0.2)' : 'rgba(17, 109, 110, 0.2)');
-          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          gradient.addColorStop(0, isDaily ? 'rgba(228, 176, 40, 0.26)' : 'rgba(18, 77, 28, 0.24)');
+          gradient.addColorStop(1, 'rgba(235, 237, 227, 0)');
           return gradient;
         },
         pointBackgroundColor: lineColor,
-        pointBorderColor: '#fff',
+        pointBorderColor: COLORS.cream,
         pointBorderWidth: 1.5,
         pointRadius: values.length > 90 ? 0 : 3,
         pointHoverRadius: 6,
@@ -463,20 +469,20 @@ function renderChart(labels, values) {
       },
       scales: {
         x: {
-          grid: { color: 'rgba(23, 32, 42, 0.07)', drawTicks: false },
+          grid: { color: 'rgba(11, 24, 73, 0.08)', drawTicks: false },
           ticks: {
-            color: '#667085',
+            color: 'rgba(11, 24, 73, 0.68)',
             maxTicksLimit: state.mode === 'day' ? 9 : 16,
             maxRotation: 0,
             padding: 10,
           },
-          border: { color: 'rgba(23, 32, 42, 0.14)' },
+          border: { color: 'rgba(11, 24, 73, 0.16)' },
         },
         y: {
           position: 'right',
-          grid: { color: 'rgba(23, 32, 42, 0.07)', drawTicks: false },
-          ticks: { color: '#667085', precision: 0, padding: 10 },
-          border: { color: 'rgba(23, 32, 42, 0.14)' },
+          grid: { color: 'rgba(11, 24, 73, 0.08)', drawTicks: false },
+          ticks: { color: 'rgba(11, 24, 73, 0.68)', precision: 0, padding: 10 },
+          border: { color: 'rgba(11, 24, 73, 0.16)' },
         },
       },
     },

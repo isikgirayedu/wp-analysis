@@ -10,6 +10,30 @@
   <script src="./app.js" defer></script>
 </head>
 <body>
+  <svg class="turtle-bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <symbol id="turtle-symbol" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="57" rx="29" ry="23" fill="#0B1849" opacity="0.22"/>
+        <ellipse cx="50" cy="55" rx="24" ry="19" fill="#124D1C"/>
+        <path d="M31 54c9-14 29-16 39 0-8 16-29 16-39 0Z" fill="#E4B028" opacity="0.38"/>
+        <path d="M50 38l10 12-10 14-10-14Z" fill="#EBEDE3" opacity="0.72"/>
+        <circle cx="50" cy="29" r="9" fill="#124D1C"/>
+        <circle cx="46.5" cy="27" r="1.7" fill="#EBEDE3"/>
+        <circle cx="53.5" cy="27" r="1.7" fill="#EBEDE3"/>
+        <ellipse cx="25" cy="50" rx="8" ry="4.5" fill="#124D1C" transform="rotate(-30 25 50)"/>
+        <ellipse cx="75" cy="50" rx="8" ry="4.5" fill="#124D1C" transform="rotate(30 75 50)"/>
+        <ellipse cx="30" cy="73" rx="8" ry="4.5" fill="#124D1C" transform="rotate(24 30 73)"/>
+        <ellipse cx="70" cy="73" rx="8" ry="4.5" fill="#124D1C" transform="rotate(-24 70 73)"/>
+      </symbol>
+    </defs>
+    <use href="#turtle-symbol" x="35" y="56" width="128" height="128" opacity="0.22" transform="rotate(-10 99 120)" />
+    <use href="#turtle-symbol" x="922" y="70" width="105" height="105" opacity="0.18" transform="rotate(16 974 122)" />
+    <use href="#turtle-symbol" x="1036" y="324" width="144" height="144" opacity="0.2" transform="rotate(-21 1108 396)" />
+    <use href="#turtle-symbol" x="76" y="512" width="112" height="112" opacity="0.18" transform="rotate(22 132 568)" />
+    <use href="#turtle-symbol" x="565" y="612" width="92" height="92" opacity="0.17" transform="rotate(-7 611 658)" />
+    <use href="#turtle-symbol" x="402" y="190" width="76" height="76" opacity="0.14" transform="rotate(11 440 228)" />
+  </svg>
+
   <main class="shell">
     <header class="topbar">
       <div>
@@ -19,11 +43,12 @@
       <button type="button" id="lockButton" class="ghost-button" hidden>Kilitle</button>
     </header>
 
-    <section id="unlockPanel" class="unlock-panel">
+    <section id="unlockPanel" class="unlock-overlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
       <form id="unlockForm" class="unlock-form">
+        <h2 id="unlockTitle">Kilidi ac</h2>
         <label for="passwordInput">Sifre</label>
         <div class="password-row">
-          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="sifre" />
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="sifre" autofocus />
           <button type="submit" id="unlockButton">Ac</button>
         </div>
         <p id="unlockStatus" class="status-line"></p>
@@ -37,8 +62,8 @@
         </div>
 
         <div class="segmented" role="group" aria-label="veri turu">
-          <button type="button" id="dailyButton" class="active">Gunluk</button>
-          <button type="button" id="cumulativeButton">Kumulatif</button>
+          <button type="button" id="dailyButton">Gunluk</button>
+          <button type="button" id="cumulativeButton" class="active">Kumulatif</button>
         </div>
 
         <div class="segmented" role="group" aria-label="donem">

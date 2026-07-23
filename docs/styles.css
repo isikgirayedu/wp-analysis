@@ -1,13 +1,13 @@
 :root {
-  --bg: #f7f8f5;
-  --ink: #17202a;
-  --muted: #667085;
-  --line: #d8ddd5;
-  --panel: #ffffff;
-  --panel-soft: #eef3ef;
-  --teal: #116d6e;
-  --coral: #b05a4a;
-  --gold: #a88223;
+  --navy: #0B1849;
+  --green: #124D1C;
+  --gold: #E4B028;
+  --cream: #EBEDE3;
+  --line: rgba(11, 24, 73, 0.18);
+  --line-strong: rgba(11, 24, 73, 0.34);
+  --panel: rgba(235, 237, 227, 0.91);
+  --panel-solid: #EBEDE3;
+  --shadow: 0 24px 70px rgba(11, 24, 73, 0.22);
   --radius: 8px;
 }
 
@@ -19,12 +19,12 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(90deg, rgba(17, 109, 110, 0.08) 1px, transparent 1px),
-    linear-gradient(rgba(176, 90, 74, 0.07) 1px, transparent 1px),
-    var(--bg);
-  background-size: 48px 48px;
-  color: var(--ink);
+    radial-gradient(circle at 12% 18%, rgba(228, 176, 40, 0.2), transparent 25%),
+    radial-gradient(circle at 88% 28%, rgba(18, 77, 28, 0.14), transparent 28%),
+    linear-gradient(135deg, rgba(235, 237, 227, 0.96), rgba(235, 237, 227, 0.78));
+  color: var(--navy);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
 }
 
 button,
@@ -35,20 +35,56 @@ input {
 button,
 .import-button {
   height: 42px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--navy);
   border-radius: var(--radius);
-  background: var(--ink);
-  color: #fff;
+  background: var(--navy);
+  color: var(--cream);
   padding: 0 16px;
   cursor: pointer;
 }
 
+button:hover,
+.import-button:hover {
+  background: var(--green);
+}
+
 button:disabled {
   cursor: wait;
-  opacity: 0.7;
+  opacity: 0.72;
+}
+
+.turtle-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.turtle-bg use {
+  animation: turtleFloat 8s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.turtle-bg use:nth-of-type(2n) {
+  animation-duration: 10s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes turtleFloat {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -18px;
+  }
 }
 
 .shell {
+  position: relative;
+  z-index: 1;
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
   padding: 28px 0 42px;
@@ -62,50 +98,70 @@ button:disabled {
   margin-bottom: 16px;
 }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 0.95;
-  font-weight: 650;
-}
-
+h1,
+h2,
 p {
   margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 0.95;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+h2 {
+  font-size: 1.55rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .topbar p,
 .status-line,
 .ticker-date,
 .stats-grid small {
-  color: var(--muted);
+  color: rgba(11, 24, 73, 0.68);
 }
 
 .ghost-button {
   background: transparent;
-  color: var(--ink);
+  color: var(--navy);
 }
 
-.unlock-panel,
-.chart-panel {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
+.ghost-button:hover {
+  background: rgba(228, 176, 40, 0.22);
 }
 
-.unlock-panel {
+.unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
   padding: 24px;
+  background: rgba(11, 24, 73, 0.48);
+  backdrop-filter: blur(6px);
+}
+
+.unlock-overlay[hidden] {
+  display: none;
 }
 
 .unlock-form {
-  max-width: 520px;
+  width: min(440px, 100%);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--panel-solid);
+  box-shadow: var(--shadow);
+  padding: 24px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .unlock-form label {
   font-size: 0.82rem;
-  color: var(--muted);
+  color: rgba(11, 24, 73, 0.68);
 }
 
 .password-row {
@@ -119,15 +175,19 @@ input {
   height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fff;
-  color: var(--ink);
+  background: rgba(235, 237, 227, 0.82);
+  color: var(--navy);
   padding: 0 12px;
   outline: none;
 }
 
+input::placeholder {
+  color: rgba(11, 24, 73, 0.45);
+}
+
 input:focus {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(17, 109, 110, 0.14);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(228, 176, 40, 0.25);
 }
 
 .app-panel {
@@ -156,13 +216,17 @@ input:focus {
   height: 32px;
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: rgba(11, 24, 73, 0.66);
   padding: 0 12px;
 }
 
+.segmented button:hover {
+  background: rgba(228, 176, 40, 0.18);
+}
+
 .segmented button.active {
-  background: var(--teal);
-  color: #fff;
+  background: var(--green);
+  color: var(--cream);
 }
 
 .import-button {
@@ -177,6 +241,11 @@ input:focus {
 }
 
 .chart-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 16px 44px rgba(11, 24, 73, 0.1);
+  backdrop-filter: blur(12px);
   padding: 18px;
 }
 
@@ -200,11 +269,12 @@ input:focus {
   font-size: clamp(2.25rem, 5vw, 4rem);
   line-height: 0.9;
   font-variant-numeric: tabular-nums;
+  color: var(--green);
 }
 
 .ticker-query {
-  color: var(--coral);
-  font-weight: 650;
+  color: var(--gold);
+  font-weight: 700;
 }
 
 .change-pill {
@@ -215,8 +285,8 @@ input:focus {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--panel-soft);
-  color: var(--muted);
+  background: rgba(228, 176, 40, 0.18);
+  color: rgba(11, 24, 73, 0.68);
 }
 
 .change-pill.visible {
@@ -224,11 +294,11 @@ input:focus {
 }
 
 .change-pill strong.pos {
-  color: var(--teal);
+  color: var(--green);
 }
 
 .change-pill strong.neg {
-  color: var(--coral);
+  color: var(--navy);
 }
 
 .chart-box {
@@ -249,7 +319,7 @@ input:focus {
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: rgba(11, 24, 73, 0.62);
 }
 
 .stats-grid {
@@ -263,13 +333,14 @@ input:focus {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
+  box-shadow: 0 10px 30px rgba(11, 24, 73, 0.08);
   padding: 14px;
 }
 
 .stats-grid span {
   display: block;
   margin-bottom: 6px;
-  color: var(--muted);
+  color: rgba(11, 24, 73, 0.66);
   font-size: 0.76rem;
   text-transform: uppercase;
 }
@@ -277,8 +348,9 @@ input:focus {
 .stats-grid strong {
   display: block;
   overflow-wrap: anywhere;
+  color: var(--navy);
   font-size: 1.55rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .stats-grid small {
@@ -327,7 +399,7 @@ input:focus {
   }
 
   .chart-panel,
-  .unlock-panel {
+  .unlock-form {
     padding: 14px;
   }
 }
