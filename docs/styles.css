@@ -45,9 +45,19 @@ button:hover,
   background: var(--green);
 }
 
+.unlock-action-button,
 .guest-button {
   width: 100%;
+  height: 48px;
   margin-top: 2px;
+}
+
+.unlock-action-button {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.guest-button {
   background: transparent;
   color: var(--navy);
   border-color: var(--line-strong);
