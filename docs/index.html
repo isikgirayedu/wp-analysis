@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat Analiz</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./vendor/chart.umd.min.js"></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>Chat Analiz</h1>
+        <p id="metaLine">Sifreli veri bekleniyor</p>
+      </div>
+      <button type="button" id="lockButton" class="ghost-button" hidden>Kilitle</button>
+    </header>
+
+    <section id="unlockPanel" class="unlock-panel">
+      <form id="unlockForm" class="unlock-form">
+        <label for="passwordInput">Sifre</label>
+        <div class="password-row">
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="sifre" />
+          <button type="submit" id="unlockButton">Ac</button>
+        </div>
+        <p id="unlockStatus" class="status-line"></p>
+      </form>
+    </section>
+
+    <section id="appPanel" class="app-panel" hidden>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="kelime ara" disabled />
+        </div>
+
+        <div class="segmented" role="group" aria-label="veri turu">
+          <button type="button" id="dailyButton" class="active">Gunluk</button>
+          <button type="button" id="cumulativeButton">Kumulatif</button>
+        </div>
+
+        <div class="segmented" role="group" aria-label="donem">
+          <button type="button" id="dayButton" class="active">Gun</button>
+          <button type="button" id="monthButton">Ay</button>
+        </div>
+
+        <label class="import-button">
+          TXT Sec
+          <input id="chatFileInput" type="file" accept=".txt,text/plain" />
+        </label>
+      </div>
+
+      <div class="chart-panel">
+        <div class="ticker-row">
+          <div class="ticker-main">
+            <div id="tickerValue" class="ticker-value">-</div>
+            <div>
+              <div id="tickerQuery" class="ticker-query">-</div>
+              <div id="tickerDate" class="ticker-date">kelime ara</div>
+            </div>
+          </div>
+          <div id="changePill" class="change-pill">
+            <span id="changeDates"></span>
+            <strong id="changeDelta"></strong>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <p id="placeholder" class="placeholder">kelime ara</p>
+          <canvas id="chartCanvas" hidden></canvas>
+        </div>
+      </div>
+
+      <div id="statsGrid" class="stats-grid" hidden>
+        <article>
+          <span>Toplam</span>
+          <strong id="statTotal">0</strong>
+          <small id="statKeyword">-</small>
+        </article>
+        <article>
+          <span>Zirve</span>
+          <strong id="statPeak">-</strong>
+          <small id="statPeakCount">0 kez</small>
+        </article>
+        <article>
+          <span>Aktif Donem</span>
+          <strong id="statActive">-</strong>
+          <small>en az 1 mesaj</small>
+        </article>
+        <article>
+          <span>Ortalama</span>
+          <strong id="statAverage">-</strong>
+          <small>aktif donemlerde</small>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

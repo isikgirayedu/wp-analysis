@@ -5,7 +5,7 @@ WhatsApp Chat*.txt
 WhatsApp Chat*.zip
 istekler_ozeti.md
 .env
-data/
+/data/
 node_modules/
 .tools/
 .git/

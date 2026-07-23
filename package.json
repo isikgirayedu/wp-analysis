@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "pages:encrypt": "node scripts/encrypt-pages-chat.js",
     "check": "node --check server.js && node --check tests/backend-smoke.js && node tests/backend-smoke.js",
     "test": "node tests/backend-smoke.js"
   },

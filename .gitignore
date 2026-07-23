@@ -6,6 +6,6 @@ WhatsApp Chat*.zip
 istekler_ozeti.md
 .tools/
 node_modules/
-data/
+/data/
 .env
 .DS_Store
